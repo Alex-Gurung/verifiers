@@ -100,7 +100,7 @@ def load_environment(
         sents_proc = precompute_story_sentences(x["story"])
         return {
             "prompt": task_prompt.replace("{story}", x["story"]),
-            "answer": {
+            "info": {
                 "cont_error": int(x["cont_error"]),
                 # strings that introduce the error and those contradicted earlier
                 "cont_error_lines": listify_lines(x["cont_error_lines"]),

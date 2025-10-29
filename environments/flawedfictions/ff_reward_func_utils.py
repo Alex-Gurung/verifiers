@@ -200,7 +200,7 @@ def make_localization_rewards(parse_binary_label_fn, is_binary_formatted_fn):
     """
 
     def loc_format(
-        parser: Parser, completion: Messages, answer: Dict[str, Any], **kwargs
+        parser: Parser, completion: Messages, answer: str, info: Dict[str, Any], **kwargs
     ) -> float:
         text = parser.parse_answer(completion) or ""
         if not is_binary_formatted_fn(text):
@@ -213,7 +213,7 @@ def make_localization_rewards(parse_binary_label_fn, is_binary_formatted_fn):
         return 1.0 if _line_tags_ok(text) else 0.0
 
     def loc_full(
-        parser: Parser, completion: Messages, answer: Dict[str, Any], **kwargs
+        parser: Parser, completion: Messages, answer: str, info: Dict[str, Any], **kwargs
     ) -> float:
         text = parser.parse_answer(completion) or ""
         if not is_binary_formatted_fn(text):
@@ -221,18 +221,18 @@ def make_localization_rewards(parse_binary_label_fn, is_binary_formatted_fn):
         pred = parse_binary_label_fn(text)
         if pred is None:
             return 0.0
-        gold = int(answer["cont_error"])  # 0/1
+        gold = int(info["cont_error"])  # 0/1
         if pred != gold:
             return 0.0
         if pred == 0:
             return 1.0
         if not _line_tags_ok(text):
             return 0.0
-        s_proc = answer.get("story_sents_proc")
+        s_proc = info.get("story_sents_proc")
         if not isinstance(s_proc, list):
             return 0.0
-        gt_err = answer.get("cont_error_lines", [])
-        gt_contra = answer.get("contradicted_lines", [])
+        gt_err = info.get("cont_error_lines", [])
+        gt_contra = info.get("contradicted_lines", [])
         if not isinstance(gt_err, list) or not isinstance(gt_contra, list):
             return 0.0
         pred_err = extract_tag_lines(text, "error_lines")
@@ -260,13 +260,13 @@ def make_binary_rewards(parse_binary_label_fn, is_binary_formatted_fn):
         return 1.0 if is_binary_formatted_fn(text) else 0.0
 
     def bin_accuracy(
-        parser: Parser, completion: Messages, answer: Dict[str, Any], **kwargs
+        parser: Parser, completion: Messages, answer:str, info: Dict[str, Any], **kwargs
     ) -> float:
         text = parser.parse_answer(completion) or ""
         pred = parse_binary_label_fn(text)
         if pred is None:
             return 0.0
-        gold = int(answer["cont_error"])  # 0/1
+        gold = int(info["cont_error"])  # 0/1
         return 1.0 if pred == gold else 0.0
 
     return bin_format, bin_accuracy
