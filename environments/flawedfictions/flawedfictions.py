@@ -1,7 +1,6 @@
 import verifiers as vf
 
 from datasets import load_dataset
-from typing import Dict
 
 # no system prompt used; parser returns raw assistant content
 from environments.flawedfictions.ff_reward_func_utils import (
@@ -64,7 +63,9 @@ def load_environment(
         "simple_boxed_prompt.txt",
         "conterror_detector_prompt.txt",
         "conterror_detector_prompt_cot.txt",
-    ], "prompt_name must be either simple_boxed_prompt.txt, conterror_detector_prompt.txt, conterror_detector_prompt_cot.txt"
+    ], (
+        "prompt_name must be either simple_boxed_prompt.txt, conterror_detector_prompt.txt, conterror_detector_prompt_cot.txt"
+    )
     with open(f"environments/flawedfictions/prompts/{prompt_name}", "r") as f:
         task_prompt = f.read()
 
@@ -81,9 +82,9 @@ def load_environment(
             if num_eval_examples == -1
             else num_eval_examples
         )
-        assert num_train_examples + num_eval_examples <= len(
-            total_dataset
-        ), "num_train_examples + num_eval_examples must be less than or equal to the total number of examples, or set to -1 to use the default 80/20 split"
+        assert num_train_examples + num_eval_examples <= len(total_dataset), (
+            "num_train_examples + num_eval_examples must be less than or equal to the total number of examples, or set to -1 to use the default 80/20 split"
+        )
         dataset = total_dataset.select(range(num_train_examples))
         eval_dataset = total_dataset.select(
             range(num_train_examples, num_train_examples + num_eval_examples)
@@ -99,8 +100,8 @@ def load_environment(
     def to_answer(x):
         sents_proc = precompute_story_sentences(x["story"])
         return {
-            "question": task_prompt.replace("{story}", x["story"]),
             # "prompt": task_prompt.replace("{story}", x["story"]),
+            "question": task_prompt.replace("{story}", x["story"]),
             "info": {
                 "cont_error": int(x["cont_error"]),
                 # strings that introduce the error and those contradicted earlier
@@ -112,7 +113,9 @@ def load_environment(
         }
 
     dataset = dataset.map(to_answer, num_proc=10, remove_columns=dataset.column_names)
-    eval_dataset = eval_dataset.map(to_answer, num_proc=10, remove_columns=eval_dataset.column_names)
+    eval_dataset = eval_dataset.map(
+        to_answer, num_proc=10, remove_columns=eval_dataset.column_names
+    )
 
     # Choose parser and reward functions based on prompt style
     parser = vf.Parser()  # return raw assistant content for reward parsing
