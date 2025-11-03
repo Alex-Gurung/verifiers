@@ -99,7 +99,8 @@ def load_environment(
     def to_answer(x):
         sents_proc = precompute_story_sentences(x["story"])
         return {
-            "prompt": task_prompt.replace("{story}", x["story"]),
+            "question": task_prompt.replace("{story}", x["story"]),
+            # "prompt": task_prompt.replace("{story}", x["story"]),
             "info": {
                 "cont_error": int(x["cont_error"]),
                 # strings that introduce the error and those contradicted earlier
@@ -110,8 +111,8 @@ def load_environment(
             },
         }
 
-    dataset = dataset.map(to_answer)
-    eval_dataset = eval_dataset.map(to_answer)
+    dataset = dataset.map(to_answer, num_proc=10, remove_columns=dataset.column_names)
+    eval_dataset = eval_dataset.map(to_answer, num_proc=10, remove_columns=eval_dataset.column_names)
 
     # Choose parser and reward functions based on prompt style
     parser = vf.Parser()  # return raw assistant content for reward parsing
